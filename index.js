@@ -1,5 +1,6 @@
+// Models
 class Room {
-  constructor(name) {
+  constructor (name) {
     this._name = name;
     this._description = "";
     this._linkedRooms = {};
@@ -64,6 +65,8 @@ class Room {
     }
   }
 
+  
+
   getDetails () {
     const entries = Object.entries(this._linkedRooms);
     let details = []
@@ -80,6 +83,7 @@ class Character {
     this._name = name;
     this._description = "";
     this._conversation = "";
+    this._items = [];
   }
 
   set name (value) {
@@ -116,7 +120,19 @@ class Character {
   get conversation() {
     return this._conversation;
   }
-     
+
+  get items () {
+    return this._items
+  }
+
+  set items (value) {
+    if (value.length < 4) {
+      alert('Conversation needs to be at least 4 characters');
+      return;
+    }
+    this._items = value;
+  }
+
   describe () {
     return 'You meet ' + this._name + ' who is ' + this._description
   }
@@ -124,8 +140,8 @@ class Character {
   converse() {
     return this._name + " says " + "'" + this._conversation + "'";
   }
-}     
-    
+}
+
 class Enemy extends Character {
   constructor (name, weakness) {
     super(name);
@@ -153,18 +169,38 @@ class Enemy extends Character {
   }
 }
 
+function fightEnemy (enemy, weakness) {
+   
+}
+
 class Friend extends Character {
-  constructor (name, item) {
+  constructor (name, question) {
     super(name);
-    this._item = item;
-    }
-     
-  set item (value) {
+    this._question = question;
+  }
+
+  set items (value) {
     if (value.length < 4) {
       alert('Decription needs to be at least 4 characters');
       return;
     }
-    this._item = value;
+    this._items.push(value);
+  }
+
+  get items () {
+    return this._items;
+  }
+
+  get question () {
+    return this._question;
+  }
+
+  set question (value) {
+    if (value.length < 4) {
+      alert('Question needs to be at least 4 characters');
+      return;
+    }
+    this._question = value;
   }
 }
 
@@ -203,6 +239,7 @@ class Item {
   }
 }
 
+// Instantiating Room
 const Hallway = new Room('hallway');
 Hallway.description = 'long narrow room with large portraits on the walls';
 const Kitchen = new Room('kitchen');
@@ -216,7 +253,7 @@ Bedroom.description = 'spacious room with a large red canopy bed in the middle';
 const Courtyard = new Room('courtyard');
 Courtyard.description = 'large green space with blossoming apple trees';
 
-
+// Link Rooms
 Hallway.linkRoom('west', Kitchen);
 Hallway.linkRoom('east', Lounge);
 Hallway.linkRoom('north', Courtyard);
@@ -226,10 +263,9 @@ Pantry.linkRoom('south', Kitchen);
 Lounge.linkRoom('west', Hallway);
 Lounge.linkRoom('north', Bedroom);
 Bedroom.linkRoom('south', Lounge);
-Courtyard.linkRoom('north', Cave);
 Courtyard.linkRoom('south', Hallway);
 
-
+// Instantiate items
 const Steak = new Item('steak');
 const Sword = new Item('sword');
 Pantry.item = Sword;
@@ -237,10 +273,13 @@ const Key = new Item('key');
 Bedroom.item = Key;
 
 const Lady = new Friend('Alice');
-Lady.conversation = 'Hello my friend';
+Lady.conversation = 'Hello my friend. Would you like to chat?';
 Lady.description = 'an old lady with kind eyes and long gray hair';
-Lady.item = Steak;
+Lady.items = 'steak';
+Lady.question = 'Thank you for talking to me! Would you like a steak? It might come in handy!'
 Kitchen.character = Lady;
+
+const player = new Character('Player');
 
 const Dragon = new Enemy('Draco');
 Dragon.conversation = 'Zzzzzz';
@@ -256,7 +295,7 @@ Dog.weakness = 'steak';
 
 Lounge.character = Dog;
 
-
+// Functions
 function displayRoom (room) {
   let occupantMsg = "";
   if (room.character == "") {
@@ -264,29 +303,59 @@ function displayRoom (room) {
   } else {
     occupantMsg = room.character.describe() + ". " + room.character.converse()
   }
-      
-  const textContent = room.describe() 
-  + "</p>" + "<p>" + occupantMsg + "</p>" + "<p>" + room.getDetails() + "</p>";
-        
-  document.getElementById('textarea').innerHTML = textContent;
-  document.getElementById('ui').focus();
+
+  const textContent = room.describe() + 
+    "</p>" + "<p>" + occupantMsg + "</p>" + "<p>" + room.getDetails() + "</p>"
+
+  document.getElementById('textarea').innerHTML = textContent
+  document.getElementById('ui').focus()
 }
 
-
-
 function startGame () {
-  let currentRoom = Hallway;
-  displayRoom(currentRoom);
+  let currentRoom = Hallway
+  displayRoom(currentRoom)
 
   document.addEventListener('keydown', function(event) {
     if (event.key === 'Enter') {
-      const command = document.getElementById('ui').value;
+      let command = document.getElementById('ui').value
+      command = command.toLowerCase()
+      const options = ['talk']
       const directions = ['north', 'south', 'east', 'west']
-      if (directions.includes(command.toLowerCase())) {
-        currentRoom = currentRoom.move(command.toLowerCase())
-        displayRoom(currentRoom);
+      const allMoves = options + directions
+      if (allMoves.includes(command)) {
+        if (directions.includes(command)) {
+          currentRoom = currentRoom.move(command)
+          displayRoom(currentRoom)
+        } else {
+          // Which room am I in
+          // console.log(currentRoom)
+          switch (currentRoom.name) {
+            // Interactions
+            case 'kitchen':
+              console.log(Lady)
+              if (command === 'talk') {
+                document.getElementById('textarea').innerHTML += Lady.question
+                player.items.push(Lady.items[0])
+                console.log(Lady.items)
+                console.log(player)
+              }
+              break;
+            case 'Lounge':
+              // pass
+              break;
+            case 'Pantry':
+              // pass
+              break;
+            case 'Courtyard':
+              // pass
+              break;
+            case 'Bedroom':
+              // pass
+              break;
+          }
+        }
       } else {
-        document.getElementById('ui').value = ""
+        document.getElementById('ui').value = ''
         alert('that is not a valid command, please try again')
       }
     }
@@ -294,6 +363,3 @@ function startGame () {
 }
 
 startGame()
-
-
-
