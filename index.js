@@ -65,8 +65,6 @@ class Room {
     }
   }
 
-  
-
   getDetails () {
     const entries = Object.entries(this._linkedRooms);
     let details = []
@@ -109,6 +107,7 @@ class Character {
     }
     this._conversation = value;
   }
+
   get name () {
     return this._name;
   }
@@ -146,8 +145,8 @@ class Enemy extends Character {
   constructor (name, weakness) {
     super(name);
     this._weakness = weakness;
-    }
-     
+  }
+
   set weakness (value) {
     if (value.length < 4) {
       alert('Decription needs to be at least 4 characters');
@@ -160,17 +159,13 @@ class Enemy extends Character {
     return this._weakness;
   }
 
-  fight (item) {
-    if (item == this._weakness) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-}
-
-function fightEnemy (enemy, weakness) {
-   
+  // fight (item) {
+  //   if (item == this._weakness) {
+  //     return true;
+  //   } else {
+  //     return false;
+  //   }
+  // }
 }
 
 class Friend extends Character {
@@ -261,12 +256,12 @@ Kitchen.linkRoom('east', Hallway);
 Kitchen.linkRoom('north', Pantry);
 Pantry.linkRoom('south', Kitchen);
 Lounge.linkRoom('west', Hallway);
-Lounge.linkRoom('north', Bedroom);
+// Lounge.linkRoom('north', Bedroom);
 Bedroom.linkRoom('south', Lounge);
 Courtyard.linkRoom('south', Hallway);
 
 // Instantiate items
-const Steak = new Item('steak');
+// const Steak = new Item('steak');
 const Sword = new Item('sword');
 Pantry.item = Sword;
 const Key = new Item('key');
@@ -276,7 +271,7 @@ const Lady = new Friend('Alice');
 Lady.conversation = 'Hello my friend. Would you like to chat?';
 Lady.description = 'an old lady with kind eyes and long gray hair';
 Lady.items = 'steak';
-Lady.question = 'Thank you for talking to me! Would you like a steak? It might come in handy!'
+Lady.question = "Alice says 'Thank you for talking to me! Here is a steak for your journey. It might come in handy!'"
 Kitchen.character = Lady;
 
 const player = new Character('Player');
@@ -319,7 +314,7 @@ function startGame () {
     if (event.key === 'Enter') {
       let command = document.getElementById('ui').value
       command = command.toLowerCase()
-      const options = ['talk']
+      const options = ['talk', 'fight']
       const directions = ['north', 'south', 'east', 'west']
       const allMoves = options + directions
       if (allMoves.includes(command)) {
@@ -332,24 +327,26 @@ function startGame () {
           switch (currentRoom.name) {
             // Interactions
             case 'kitchen':
-              console.log(Lady)
               if (command === 'talk') {
                 document.getElementById('textarea').innerHTML += Lady.question
                 player.items.push(Lady.items[0])
-                console.log(Lady.items)
-                console.log(player)
               }
               break;
-            case 'Lounge':
+            case 'lounge':
+              if (command === 'fight' && player.items.includes(Dog.weakness)) {
+                document.getElementById('textarea').innerHTML += 'Beast liked his tasty meal and has fallen asleep on the sofa. You can sneak past him and enter the door to the north'
+                Lounge.linkRoom('north', Bedroom);
+              } else {
+                alert('Beast attacked you. You have lost the game.')
+              }
+              break;
+            case 'pantry':
               // pass
               break;
-            case 'Pantry':
+            case 'courtyard':
               // pass
               break;
-            case 'Courtyard':
-              // pass
-              break;
-            case 'Bedroom':
+            case 'bedroom':
               // pass
               break;
           }
