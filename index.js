@@ -5,7 +5,7 @@ class Room {
     this._description = "";
     this._linkedRooms = {};
     this._character = "";
-    this._item = "";
+    this._items = [];
   }
 
   get name () {
@@ -20,8 +20,8 @@ class Room {
     return this._character;
   }
 
-  get item () {
-    return this._item;
+  get items () {
+    return this._items;
   }
 
   set name (value) {
@@ -44,8 +44,8 @@ class Room {
     this._character = value;
   }
 
-  set item (value) {
-    this._item = value;
+  set items (value) {
+    this._items.push(value)
   }
 
   describe () {
@@ -199,61 +199,63 @@ class Friend extends Character {
   }
 }
 
-class Item {
-  constructor(name) {
-    this._name = name
-    this._description = ""
-  }
+// class Item {
+//   constructor(name) {
+//     this._name = name
+//     this._description = ""
+//   }
 
-  set name(value) {
-    if (value.length < 4) {
-      alert("Name needs to be at least 4 characters");
-      return;
-    }
-    this._name = value;
-  }
+//   set name(value) {
+//     if (value.length < 4) {
+//       alert("Name needs to be at least 4 characters");
+//       return;
+//     }
+//     this._name = value;
+//   }
 
-  set description(value) {
-    if (value.length < 4) {
-      alert("Decription needs to be at least 4 characters");
-      return;
-    }
-    this._name = value;
-  }
+//   set description(value) {
+//     if (value.length < 4) {
+//       alert("Decription needs to be at least 4 characters");
+//       return;
+//     }
+//     this._name = value;
+//   }
 
-  get name() {
-    return this._name;
-  }
+//   get name() {
+//     return this._name;
+//   }
 
-  get description() {
-    return this._description;
-  }
+//   get description() {
+//     return this._description;
+//   }
 
-  describe() {
-    return 'This is a ' + this._name
-  }
-}
+//   describe() {
+//     return 'This is a ' + this._name
+//   }
+// }
 
 // Instantiating Room
 const Hallway = new Room('hallway');
 Hallway.description = 'long narrow room with large portraits on the walls';
 const Kitchen = new Room('kitchen');
-Kitchen.description = 'large spacious room with worktops on all sides and a large table in the middle';
+Kitchen.description = 'large spacious room with worktops on all sides and a large table in the middle. There is a door to the north but it is locked.';
 const Pantry = new Room('pantry');
-Pantry.description = 'small room filled with food and drinks';
+Pantry.description = 'small room filled with food and drinks. There is a steel sword on the top shelf.';
 const Lounge = new Room('lounge');
 Lounge.description = 'large room with a chandelier in the ceiling and a red velvet sofa next to a fireplace';
 const Bedroom = new Room('bedroom');
-Bedroom.description = 'spacious room with a large red canopy bed in the middle';
+Bedroom.description = 'spacious room with a large red canopy bed in the middle. On the bed, there is a golden key. Type "take" to put the key into you backpack.';
 const Courtyard = new Room('courtyard');
 Courtyard.description = 'large green space with blossoming apple trees';
+const cave = new Room('cave');
+cave.description = "dark space with water dripping from the walls. There is a pot of gold right in the middle."
 
 // Link Rooms
 Hallway.linkRoom('west', Kitchen);
 Hallway.linkRoom('east', Lounge);
 Hallway.linkRoom('north', Courtyard);
 Kitchen.linkRoom('east', Hallway);
-Kitchen.linkRoom('north', Pantry);
+// Kitchen.linkRoom('north', Pantry);
 Pantry.linkRoom('south', Kitchen);
 Lounge.linkRoom('west', Hallway);
 // Lounge.linkRoom('north', Bedroom);
@@ -262,10 +264,8 @@ Courtyard.linkRoom('south', Hallway);
 
 // Instantiate items
 // const Steak = new Item('steak');
-const Sword = new Item('sword');
-Pantry.item = Sword;
-const Key = new Item('key');
-Bedroom.item = Key;
+Pantry.items = 'sword';
+Bedroom.items = 'key';
 
 const Lady = new Friend('Alice');
 Lady.conversation = 'Hello my friend. Would you like to chat?';
@@ -277,8 +277,8 @@ Kitchen.character = Lady;
 const player = new Character('Player');
 
 const Dragon = new Enemy('Draco');
-Dragon.conversation = 'Zzzzzz';
-Dragon.description = 'a sleeping dragon';
+Dragon.conversation = 'Fight me or die trying!';
+Dragon.description = 'an angry dragon guarding the entrance to a cave';
 Dragon.weakness = 'sword';
 
 Courtyard.character = Dragon;
@@ -306,6 +306,10 @@ function displayRoom (room) {
   document.getElementById('ui').focus()
 }
 
+function commandAlert () {
+  alert('That is not a valid command, please try again.')
+}
+
 function startGame () {
   let currentRoom = Hallway
   displayRoom(currentRoom)
@@ -314,7 +318,7 @@ function startGame () {
     if (event.key === 'Enter') {
       let command = document.getElementById('ui').value
       command = command.toLowerCase()
-      const options = ['talk', 'fight']
+      const options = ['talk', 'fight', 'take']
       const directions = ['north', 'south', 'east', 'west']
       const allMoves = options + directions
       if (allMoves.includes(command)) {
@@ -326,37 +330,74 @@ function startGame () {
           // console.log(currentRoom)
           switch (currentRoom.name) {
             // Interactions
+            case 'hallway':
+              commandAlert()
+              break;
             case 'kitchen':
               if (command === 'talk') {
                 document.getElementById('textarea').innerHTML += Lady.question
                 player.items.push(Lady.items[0])
+                Lady.conversation = "It's nice to see you again, my friend."
+              } else {
+                commandAlert()
               }
               break;
             case 'lounge':
               if (command === 'fight' && player.items.includes(Dog.weakness)) {
                 document.getElementById('textarea').innerHTML += 'Beast liked his tasty meal and has fallen asleep on the sofa. You can sneak past him and enter the door to the north'
                 Lounge.linkRoom('north', Bedroom);
-              } else {
+                Dog.description = 'sleeping on the sofa'
+                Dog.conversation = 'Zzzzz'
+              } else if (command === 'fight' && !player.items.includes(Dog.weakness)) {
                 alert('Beast attacked you. You have lost the game.')
+              } else {
+                commandAlert()
+              }
+              break;
+            case 'bedroom':
+              if (command === 'take') {
+                player.items.push(currentRoom.items[0])
+                Bedroom.description = 'spacious room with a large red canopy bed in the middle.'
+                Kitchen.linkRoom('north', Pantry);
+                Kitchen.description = 'large spacious room with worktops on all sides and a large table in the middle.'
+              } else {
+                commandAlert()
               }
               break;
             case 'pantry':
-              // pass
+              if (command === 'take') {
+                player.items.push(currentRoom.items[0])
+              } else {
+                commandAlert()
+              }
               break;
             case 'courtyard':
-              // pass
+              if (command === 'fight' && player.items.includes(Dragon.weakness)) {
+                document.getElementById('textarea').innerHTML += 'You killed the dragon with your sword. An entrance to the cave has opened in the north.'
+                Courtyard.linkRoom('north', cave)
+              } else if (command === 'fight' && !player.items.includes(Dragon.weakness)) {
+                alert('Game over! You have been killed by the dragon.')
+              } else {
+                commandAlert()
+              }
               break;
-            case 'bedroom':
-              // pass
-              break;
+            case 'cave':
+              if (command === 'take') {
+                alert('Well done! You have won the game.')
+              } else {
+                commandAlert()
+              }
           }
         }
       } else {
         document.getElementById('ui').value = ''
-        alert('that is not a valid command, please try again')
+        commandAlert()
       }
     }
   });
 }
 
 startGame()
+
+
+
