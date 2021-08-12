@@ -174,35 +174,43 @@ class Friend extends Character {
   }
 }
 
-// Instantiate Rooms
+// Instantiate rooms
 const hallway = new Room('hallway')
 hallway.description = 'long narrow room with large portraits on the walls.'
 const kitchen = new Room('kitchen')
-kitchen.description = 'large spacious room with a wooden table in the middle. There is a door to the north but it is locked.'
+kitchen.description = 'large spacious room with a wooden table in the middle.'
 const pantry = new Room('pantry')
 pantry.description = 'small room filled with food and drinks. There is a steel sword on the top shelf.'
 pantry.items = 'sword'
 const lounge = new Room('lounge')
 lounge.description = 'large room with a chandelier in the ceiling and a red velvet sofa next to a fireplace.'
 const bedroom = new Room('bedroom')
-bedroom.description = 'spacious room with a large red canopy bed in the middle. On the bed, there is a golden key.'
+bedroom.description = 'spacious room with a red canopy bed in the middle. On the bed, there is a golden key.'
 bedroom.items = 'key'
 const courtyard = new Room('courtyard')
 courtyard.description = 'large green space with blossoming apple trees.'
 const cave = new Room('cave')
 cave.description = 'dark space with water dripping from the walls. There is a pot of gold right in the middle of the cave.'
 
-// Link Rooms
+// Link rooms
 hallway.linkRoom('west', kitchen)
 hallway.linkRoom('east', lounge)
 hallway.linkRoom('north', courtyard)
 kitchen.linkRoom('east', hallway)
 pantry.linkRoom('south', kitchen)
 lounge.linkRoom('west', hallway)
+lounge.linkRoom('north', bedroom)
 bedroom.linkRoom('south', lounge)
+kitchen.linkRoom('north', pantry)
+courtyard.linkRoom('north', cave)
 courtyard.linkRoom('south', hallway)
 
-// Instantiate Characters
+// Lock doors
+lounge.lockedDoor = true
+kitchen.lockedDoor = true
+courtyard.lockedDoor = true
+
+// Instantiate characters
 const lady = new Friend('Alice')
 lady.conversation = 'Hello my friend. Would you like to chat?'
 lady.description = 'an old lady with kind eyes and long gray hair'
@@ -214,7 +222,7 @@ const player = new Character('Player')
 
 const dragon = new Enemy('Draco')
 dragon.conversation = 'Fight me or die trying!'
-dragon.description = 'an angry dragon guarding the entrance to a cave'
+dragon.description = 'an angry dragon guarding the entrance to the cave'
 dragon.weakness = 'sword'
 courtyard.character = dragon
 
@@ -226,7 +234,7 @@ lounge.character = dog
 
 // Functions
 
-// Displays room information
+// Display room information
 function displayRoom (room) {
   let occupantMsg = ''
   if (room.character == '') {
@@ -242,17 +250,17 @@ function displayRoom (room) {
   document.getElementById('ui').focus()
 }
 
-// alert after input of a valid game command that cannot be used in that situation
+// Display alert after user input that is a valid game command but cannot be used in that situation
 function optionsAlert () {
   alert("You can't use this command here.")
 }
 
-// alert after input that is not a valid game command
+// Display alert after user input that is not a valid game command
 function notValidAlert () {
   alert('That is not a valid command, please try again.')
 }
 
-// display contents of the backpack
+// Display contents of the backpack
 function showBackPack () {
   if (player.items.length < 1) {
     document.getElementById('textarea').innerHTML += '</p>' + '<p>' + 'Backpack is empty.'
@@ -261,13 +269,24 @@ function showBackPack () {
   }
 }
 
-// display game over message and return to start page
+// Display game over message and return to start page
 function gameOver (msg) {
   alert(msg)
   window.location.reload()
 }
 
-// actions that happen after talking to the lady
+// Display alert if the door is locked
+function lockedRoomAlert(currentRoom) {
+  if (currentRoom === kitchen) {
+    alert("You can't go in. The door is locked.")
+  } else if (currentRoom === lounge) {
+    alert("You can't go in. Beast is sitting in front of the door.")
+  } else {
+    alert("You can't go in. Draco is standing in front of the cave entrance.")
+  }
+}
+
+// Actions that happen after talking to the lady
 function ladyInteraction () {
   document.getElementById('textarea').innerHTML += lady.reply
   player.items.push(lady.items[0])
@@ -275,39 +294,38 @@ function ladyInteraction () {
   lady.repeatInteraction = true
 }
 
-// actions that happen after winning the fight with the dog
+// Actions that happen after winning the fight with the dog
 function dogInteraction () {
-  document.getElementById('textarea').innerHTML += 'Beast liked his tasty meal and has fallen asleep. You can sneak past him and enter the room to the north.'
-  lounge.linkRoom('north', bedroom)
+  document.getElementById('textarea').innerHTML += 'Beast liked his tasty meal and has fallen asleep. You can sneak past him and enter the bedroom.'
   dog.description = 'sleeping on the sofa'
   dog.conversation = 'Zzzzz'
   dog.repeatInteraction = true
+  lounge.lockedDoor = false
 }
 
-// actions that happen after taking the key
+// Actions that happen after taking the key
 function keyInteraction (currentRoom) {
   player.items.push(currentRoom.items[0])
   bedroom.description = 'spacious room with a large red canopy bed in the middle.'
-  kitchen.linkRoom('north', pantry)
-  kitchen.description = 'large spacious room with worktops on all sides and a large table in the middle.'
   bedroom.repeatInteraction = true
+  kitchen.lockedDoor = false
 }
 
-// actions that happen after taking the sword
+// Actions that happen after taking the sword
 function swordInteraction (currentRoom) {
   player.items.push(currentRoom.items[0])
   pantry.description = 'small room filled with food and drinks.'
   pantry.repeatInteraction = true
 }
 
-// actions that happen after winning the fight with the dragon
+// Actions that happen after winning the fight with the dragon
 function dragonInteraction () {
-  document.getElementById('textarea').innerHTML += 'You killed the dragon with your sword. An entrance to the cave has opened in the north.'
-  courtyard.linkRoom('north', cave)
+  document.getElementById('textarea').innerHTML += 'Draco got scared of the sword and flew away.'
   dragon.repeatInteraction = true
+  courtyard.lockedDoor = false
 }
 
-// possible actions in each room
+// Possible actions in each room
 function roomInteractions (currentRoom, command) {
   switch (currentRoom.name) {
     case 'hallway':
@@ -362,13 +380,13 @@ function roomInteractions (currentRoom, command) {
   }
 }
 
-// start the game
+// Start the game
 function startGame () {
-  // set room at start to hallway
+  // Set room at start to hallway
   let currentRoom = hallway
   displayRoom(currentRoom)
 
-  // set all valid game commands
+  // Set all valid game commands
   const options = ['talk', 'fight', 'take', 'backpack']
   const directions = ['north', 'south', 'east', 'west']
   const allMoves = options + directions
@@ -378,20 +396,24 @@ function startGame () {
       let command = document.getElementById('ui').value
       command = command.toLowerCase()
       document.getElementById('ui').value = ''
-      // what happens if user input is one of the valid moves
+      // What happens if user input is one of the valid moves:
       if (allMoves.includes(command)) {
-        // if user input is a valid direction, move into that room
+        // If user input is a valid direction, move into that room unless it's locked
         if (directions.includes(command)) {
-          currentRoom = currentRoom.move(command)
-          displayRoom(currentRoom)
-          // if user input is 'backpack', show contents of the player's array
+          if (currentRoom.lockedDoor === true && command === 'north') {
+            lockedRoomAlert(currentRoom)
+          } else {
+            currentRoom = currentRoom.move(command)
+            displayRoom(currentRoom)
+          }
+          // If user input is 'backpack', show contents of the player's array
         } else if (command === 'backpack') {
           showBackPack()
-          // if user input is any of the other valid options, take action dependent on the room player is in
+          // If user input is any of the other valid options, take action dependent on the room player is in
         } else {
           roomInteractions(currentRoom, command)
         }
-      // alert if user input does not match any valid commands
+      // Alert if user input does not match any valid commands
       } else {
         document.getElementById('ui').value = ''
         notValidAlert()
