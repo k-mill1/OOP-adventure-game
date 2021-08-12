@@ -320,7 +320,7 @@ function swordInteraction (currentRoom) {
 
 // Actions that happen after winning the fight with the dragon
 function dragonInteraction () {
-  document.getElementById('textarea').innerHTML += 'Draco got scared of the sword and flew away.'
+  document.getElementById('textarea').innerHTML += 'Draco got wounded and flew away.'
   dragon.repeatInteraction = true
   courtyard.lockedDoor = false
 }
@@ -333,7 +333,7 @@ function roomInteractions (currentRoom, command) {
       break
     case 'kitchen':
       if (command === 'talk' && lady.repeatInteraction === false) {
-        ladyInteraction()
+        ladyInteraction() 
       } else {
         optionsAlert()
       }
