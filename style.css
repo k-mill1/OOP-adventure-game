@@ -1,5 +1,9 @@
 .card {
     background-color: rgb(185, 216, 206);
-    height: 350px;
+    min-height: 350px;
     padding: 30px;
+}
+
+h3 {
+    padding-left: 35px;
 }
