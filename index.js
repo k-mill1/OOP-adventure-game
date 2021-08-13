@@ -234,7 +234,7 @@ lounge.character = dog
 // Display room information
 function displayRoom (room) {
   let occupantMsg = ''
-  if (room.character == '') {
+  if (room.character === '') {
     occupantMsg = ''
   } else {
     occupantMsg = room.character.describe() + '. '
@@ -273,13 +273,11 @@ function gameOver (msg) {
 }
 
 // Display alert if the door is locked
-function lockedRoomAlert(currentRoom) {
-  if (currentRoom === kitchen) {
+function lockedRoomAlert (currentRoom) {
+  if (currentRoom === kitchen) { // Locked pantry alert
     alert("You can't go in. The door is locked.")
-  } else if (currentRoom === lounge) {
+  } else { // Locked bedroom alert
     alert("You can't go in. Beast is sitting in front of the door.")
-  } else {
-    alert("You can't go in. Draco is standing in front of the cave entrance.")
   }
 }
 
@@ -324,64 +322,93 @@ function dragonInteraction () {
   courtyard.character = ''
 }
 
-// Possible actions in each room
+// When current room is kitchen, calls an action dependent on user input
+function kitchenOptions (command) {
+  if (command === 'talk' && lady.repeatInteraction === false) {
+    ladyInteraction()
+  } else {
+    optionsAlert()
+  }
+}
+
+// When current room is lounge, calls an action dependent on user input
+function loungeOptions (command) {
+  if (command === 'fight' && player.items.includes(dog.weakness) && dog.repeatInteraction === false) {
+    dogInteraction()
+  } else if (command === 'fight' && !player.items.includes(dog.weakness)) {
+    gameOver('Beast attacked you. Game over!')
+  } else if (command === 'talk') {
+    document.getElementById('textarea').innerHTML += '</p>' + dog.converse() + '</p>'
+  } else {
+    optionsAlert()
+  }
+}
+
+// When current room is bedroom, calls an action dependent on user input
+function bedroomOptions (command, currentRoom) {
+  if (command === 'take' && bedroom.repeatInteraction === false) {
+    keyInteraction(currentRoom)
+  } else {
+    optionsAlert()
+  }
+}
+
+// When current room is pantry, calls an action dependent on user input
+function pantryOptions (command, currentRoom) {
+  if (command === 'take' && pantry.repeatInteraction === false) {
+    swordInteraction(currentRoom)
+  } else {
+    optionsAlert()
+  }
+}
+
+// When current room is courtyard, calls an action dependent on user input
+function courtyardOptions (command) {
+  if (command === 'fight' && player.items.includes(dragon.weakness) && dragon.repeatInteraction === false) {
+    dragonInteraction()
+  } else if (command === 'fight' && !player.items.includes(dragon.weakness)) {
+    gameOver('Game over! You have been killed by the dragon.')
+  } else if (command === 'talk' && dragon.repeatInteraction === false) {
+    document.getElementById('textarea').innerHTML += '</p>' + dragon.converse()
+  } else {
+    optionsAlert()
+  }
+}
+
+// When current room is cave, calls an action dependent on user input
+function caveOptions (command) {
+  if (command === 'take') {
+    alert('Well done! You have won the game.')
+    window.location.reload()
+  } else {
+    optionsAlert()
+  }
+}
+
+// Calls the relevant function based on the current room the player is in
 function roomInteractions (currentRoom, command) {
   switch (currentRoom.name) {
     case 'hallway':
       optionsAlert()
       break
     case 'kitchen':
-      if (command === 'talk' && lady.repeatInteraction === false) {
-        ladyInteraction()
-      } else {
-        optionsAlert()
-      }
+      kitchenOptions(command)
       break
     case 'lounge':
-      if (command === 'fight' && player.items.includes(dog.weakness) && dog.repeatInteraction === false) {
-        dogInteraction()
-      } else if (command === 'fight' && !player.items.includes(dog.weakness)) {
-        gameOver('Beast attacked you. Game over!')
-      } else if (command === 'talk' && dog.repeatInteraction === false) {
-        document.getElementById('textarea').innerHTML += '</p>' + dog.converse() + '</p>'
-      } else if (command === 'talk' && dog.repeatInteraction === true) {
-        document.getElementById('textarea').innerHTML += '</p>' + dog.converse() + '</p>'
-      } else {
-        optionsAlert()
-      }
+      loungeOptions(command)
       break
     case 'bedroom':
-      if (command === 'take' && bedroom.repeatInteraction === false) {
-        keyInteraction(currentRoom)
-      } else {
-        optionsAlert()
-      }
+      bedroomOptions(command, currentRoom)
       break
     case 'pantry':
-      if (command === 'take' && pantry.repeatInteraction === false) {
-        swordInteraction(currentRoom)
-      } else {
-        optionsAlert()
-      }
+      pantryOptions(command, currentRoom)
       break
     case 'courtyard':
-      if (command === 'fight' && player.items.includes(dragon.weakness) && dragon.repeatInteraction === false) {
-        dragonInteraction()
-      } else if (command === 'fight' && !player.items.includes(dragon.weakness)) {
-        gameOver('Game over! You have been killed by the dragon.')
-      } else if (command === 'talk' && dragon.repeatInteraction === false) {
-        document.getElementById('textarea').innerHTML += '</p>' + dragon.converse()
-      } else {
-        optionsAlert()
-      }
+      courtyardOptions(command)
       break
     case 'cave':
-      if (command === 'take') {
-        alert('Well done! You have won the game.')
-        window.location.reload()
-      } else {
-        optionsAlert()
-      }
+      caveOptions(command)
+      break
   }
 }
 
@@ -418,7 +445,7 @@ function startGame () {
         } else {
           roomInteractions(currentRoom, command)
         }
-      // Alert if user input does not match any valid commands
+      // Display alert if user input does not match any valid commands
       } else {
         document.getElementById('ui').value = ''
         notValidAlert()
