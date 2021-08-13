@@ -79,10 +79,10 @@ class Room {
     const entries = Object.entries(this._linkedRooms)
     const details = []
     for (const [direction, room] of entries) {
-      const text = ' The ' + room._name + ' is to the ' + direction
+      const text = ' The ' + room._name + ' is to the ' + direction + '.'
       details.push(text)
     }
-    return details
+    return details.join(' ')
   }
 }
 
@@ -202,18 +202,15 @@ lounge.linkRoom('west', hallway)
 lounge.linkRoom('north', bedroom)
 bedroom.linkRoom('south', lounge)
 kitchen.linkRoom('north', pantry)
-courtyard.linkRoom('north', cave)
 courtyard.linkRoom('south', hallway)
 
 // Lock doors
 lounge.lockedDoor = true
 kitchen.lockedDoor = true
-courtyard.lockedDoor = true
 
 // Instantiate characters
 const lady = new Friend('Alice')
-lady.conversation = 'Hello my friend. Would you like to chat?'
-lady.description = 'an old lady with kind eyes and long gray hair'
+lady.description = "an old lady with kind eyes. Alice says 'Hello my friend. Would you like to chat?'"
 lady.items = 'steak'
 lady.reply = "Alice says 'Thank you for talking to me! Here is a steak for your journey. It might come in handy!'"
 kitchen.character = lady
@@ -222,13 +219,13 @@ const player = new Character('Player')
 
 const dragon = new Enemy('Draco')
 dragon.conversation = 'Fight me or die trying!'
-dragon.description = 'an angry dragon guarding the entrance to the cave'
+dragon.description = 'an enormous green dragon with blood-red piercing eyes'
 dragon.weakness = 'sword'
 courtyard.character = dragon
 
 const dog = new Enemy('Beast')
-dog.conversation = 'Grrrrr'
 dog.description = 'an angry growling guard dog'
+dog.conversation = 'Grrrr.'
 dog.weakness = 'steak'
 lounge.character = dog
 
@@ -240,7 +237,7 @@ function displayRoom (room) {
   if (room.character == '') {
     occupantMsg = ''
   } else {
-    occupantMsg = room.character.describe() + '. ' + room.character.converse()
+    occupantMsg = room.character.describe() + '. '
   }
 
   const textContent = room.describe() +
@@ -290,7 +287,7 @@ function lockedRoomAlert(currentRoom) {
 function ladyInteraction () {
   document.getElementById('textarea').innerHTML += lady.reply
   player.items.push(lady.items[0])
-  lady.conversation = "It's nice to see you again, my dear."
+  lady.description = "an old lady with kind eyes. Alice says 'It's nice to see you again, my dear'"
   lady.repeatInteraction = true
 }
 
@@ -320,9 +317,11 @@ function swordInteraction (currentRoom) {
 
 // Actions that happen after winning the fight with the dragon
 function dragonInteraction () {
-  document.getElementById('textarea').innerHTML += 'Draco got wounded and flew away.'
+  document.getElementById('textarea').innerHTML += '</p>' + 'Draco got wounded and flew away. This has revealed a secret entrance to a cave in the north.'
   dragon.repeatInteraction = true
-  courtyard.lockedDoor = false
+  courtyard.linkRoom('north', cave)
+  cave.linkRoom('south', courtyard)
+  courtyard.character = ''
 }
 
 // Possible actions in each room
@@ -333,7 +332,7 @@ function roomInteractions (currentRoom, command) {
       break
     case 'kitchen':
       if (command === 'talk' && lady.repeatInteraction === false) {
-        ladyInteraction() 
+        ladyInteraction()
       } else {
         optionsAlert()
       }
@@ -343,6 +342,10 @@ function roomInteractions (currentRoom, command) {
         dogInteraction()
       } else if (command === 'fight' && !player.items.includes(dog.weakness)) {
         gameOver('Beast attacked you. Game over!')
+      } else if (command === 'talk' && dog.repeatInteraction === false) {
+        document.getElementById('textarea').innerHTML += '</p>' + dog.converse() + '</p>'
+      } else if (command === 'talk' && dog.repeatInteraction === true) {
+        document.getElementById('textarea').innerHTML += '</p>' + dog.converse() + '</p>'
       } else {
         optionsAlert()
       }
@@ -366,6 +369,8 @@ function roomInteractions (currentRoom, command) {
         dragonInteraction()
       } else if (command === 'fight' && !player.items.includes(dragon.weakness)) {
         gameOver('Game over! You have been killed by the dragon.')
+      } else if (command === 'talk' && dragon.repeatInteraction === false) {
+        document.getElementById('textarea').innerHTML += '</p>' + dragon.converse()
       } else {
         optionsAlert()
       }
