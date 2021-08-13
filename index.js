@@ -296,6 +296,7 @@ function dogInteraction () {
   dog.conversation = 'Zzzzz'
   dog.repeatInteraction = true
   lounge.lockedDoor = false
+  player.items.shift()
 }
 
 // Actions that happen after taking the key
